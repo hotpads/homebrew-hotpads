@@ -11,7 +11,6 @@ class HbaseAT135 < Formula
   # building native extensions requires a version of java that matches the architecture
   # there is no 32 bit version of java for macOS since Java 1.7, and 1.8 is required for hbase
   depends_on :arch => :x86_64
-  depends_on :java => "1.8"
   depends_on "lzo"
 
   resource "hadoop-lzo" do
