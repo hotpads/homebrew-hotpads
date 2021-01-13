@@ -11,12 +11,6 @@ class HbaseAT135 < Formula
   # building native extensions requires a version of java that matches the architecture
   # there is no 32 bit version of java for macOS since Java 1.7, and 1.8 is required for hbase
   depends_on :arch => :x86_64
-  depends_on "lzo"
-
-  resource "hadoop-lzo" do
-    url "https://github.com/cloudera/hadoop-lzo/archive/0.4.14.tar.gz"
-    sha256 "aa8ddbb8b3f9e1c4b8cc3523486acdb7841cd97c002a9f2959c5b320c7bb0e6c"
-  end
 
   def install
     rm_f Dir["bin/*.cmd", "conf/*.cmd"]
@@ -26,20 +20,6 @@ class HbaseAT135 < Formula
     # too special-purpose to be permanently available via PATH.
     %w[hbase start-hbase.sh stop-hbase.sh].each do |script|
       (bin/script).write_env_script "#{libexec}/bin/#{script}", Language::Java.java_home_env("1.8")
-    end
-
-    resource("hadoop-lzo").stage do
-      # Fixed upstream: https://github.com/cloudera/hadoop-lzo/blob/HEAD/build.xml#L235
-      inreplace "build.xml",
-                %r{(<class name="com.hadoop.compression.lzo.LzoDecompressor" />)},
-                "\\1\n<classpath refid=\"classpath\"/>"
-      ENV["CLASSPATH"] = Dir["#{libexec}/lib/hadoop-common-*.jar"].first
-      ENV["CFLAGS"] = "-m64"
-      ENV["CXXFLAGS"] = "-m64"
-      ENV["CPPFLAGS"] = "-I/System/Library/Frameworks/JavaVM.framework/Versions/Current/Headers"
-      system "ant", "compile-native", "tar"
-      (libexec/"lib").install Dir["build/hadoop-lzo-*/hadoop-lzo-*.jar"]
-      (libexec/"lib/native").install Dir["build/hadoop-lzo-*/lib/native/*"]
     end
 
     inreplace "#{libexec}/conf/hbase-env.sh" do |s|
